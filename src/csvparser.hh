@@ -68,7 +68,8 @@ class CsvParser {
 		};
 	} codeUnitReturn_t;
 public:
-	std::map<long,long> parseCsvStream( std::istream *input, CsvDataStorage &storage, CsvDefinition *definition, int maxLines=0, bool resizeRows=true );
+	bool hasUnclosedField() const { return parseCsvState == CSVPARSER_CONST_ENCLOSED; }
+	std::map<long,long> parseCsvStream( std::istream *input, CsvDataStorage &storage, CsvDefinition *definition, int maxLines=0, bool resizeRows=true, bool reportProgress=true );
 private:
 	int parseCsvState = CSVPARSER_CONST_NOT_ENCLOSED;
 	std::string parseCsvRemaining = "";

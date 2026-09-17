@@ -513,6 +513,14 @@ void CsvApplication::openFile(bool askUser, bool reopen) {
 }
 
 
+void CsvApplication::refreshFile() {
+	const int index = getTopWindow();
+	if( index >= 0 && index < TCRUNCHER_MAX_WINDOWS ) {
+		windows[index].refreshFromDisk();
+	}
+}
+
+
 void CsvApplication::openFile(std::string path, bool askUser) {
 	int winIndex = app.getTopWindow();
 	bool fileLoaded;

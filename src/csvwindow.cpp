@@ -21,6 +21,8 @@
 
 
 #include "csvwindow.hh"
+#include <memory>
+#include <stdexcept>
 
 
 
@@ -57,6 +59,11 @@ int My_Fl_Double_Window::handle(int event) {
 	}
 
 	int key = Fl::event_key() & ~(FL_SHIFT+FL_COMMAND);
+	if( (event == FL_KEYDOWN || event == FL_SHORTCUT) &&
+		Fl::event_command() && key == 'r' && !Fl::event_shift() && !Fl::event_alt() ) {
+		windows[windowIndex].refreshFromDisk();
+		return 1;
+	}
 
 	switch( event ) {
 		case FL_SHORTCUT:
@@ -460,6 +467,85 @@ bool CsvWindow::loadFile(std::string filename, bool askUser, bool reopen) {
 	}
 	
 	
+	return true;
+}
+
+
+bool CsvWindow::refreshFromDisk() {
+	if( path.empty() ) {
+		CsvApplication::myFlChoice("Refresh", "Save this document before refreshing from disk.", {"Okay"});
+		return false;
+	}
+	grid->finishEditing();
+	if( isChanged() && CsvApplication::myFlChoice("Refresh",
+		"Discard your unsaved edits and load the latest file from disk?",
+		{"Cancel", "Discard and Refresh"}, 160) != 1 ) {
+		return false;
+	}
+
+	// Parse separately: failed reads must leave the current document and undo intact.
+	std::unique_ptr<CsvTable> fresh;
+	CsvDefinition definition = table->getDefinition();
+	try {
+		const auto file = std::filesystem::u8path(path);
+		const auto modified = std::filesystem::last_write_time(file);
+		const auto size = std::filesystem::file_size(file);
+		std::ifstream input(file, std::ios::binary);
+		if( !input ) throw std::runtime_error("Could not open the file.");
+		// Preserve encoding and delimiter; detect the BOM again because writers may remove it.
+		unsigned char bom[3] = {};
+		input.read(reinterpret_cast<char*>(bom), 3);
+		const auto count = input.gcount();
+		definition.bomBytes = 0;
+		if( count >= 3 && definition.encoding == CsvDefinition::ENC_UTF8 &&
+			bom[0] == 0xEF && bom[1] == 0xBB && bom[2] == 0xBF ) definition.bomBytes = 3;
+		if( count >= 2 && ((definition.encoding == CsvDefinition::ENC_UTF16LE && bom[0] == 0xFF && bom[1] == 0xFE) ||
+			(definition.encoding == CsvDefinition::ENC_UTF16BE && bom[0] == 0xFE && bom[1] == 0xFF)) ) definition.bomBytes = 2;
+		input.clear();
+		input.seekg(0);
+		fresh = std::make_unique<CsvTable>(0, 0);
+		CsvParser parser;
+		// Avoid processing UI callbacks while a document replacement is in progress.
+		parser.parseCsvStream(&input, fresh->getStorage(), &definition, 0, true, false);
+		if( input.bad() || parser.hasUnclosedField() || fresh->getNumberRows() == 0 || fresh->getNumberCols() == 0 )
+			throw std::runtime_error("The file is empty, incomplete, or could not be read. Try refreshing again after the writer finishes.");
+		if( modified != std::filesystem::last_write_time(file) || size != std::filesystem::file_size(file) )
+			throw std::runtime_error("The file changed while being read. Please refresh again.");
+		fresh->setDefinition(definition);
+		fresh->setFileDefinition(definition);
+		fresh->updateInternals();
+		if( table->customHeaderRowShown() ) fresh->switchHeader();
+	} catch( const std::exception& error ) {
+		CsvApplication::myFlChoice("Refresh failed", error.what(), {"Okay"}, 100, 200);
+		return false;
+	}
+
+	const int rowPosition = grid->row_position(), colPosition = grid->col_position();
+	int top, left, bottom, right;
+	grid->get_selection(top, left, bottom, right);
+	CsvTable *previous = table;
+	table = fresh.release();
+	grid->setDataTable(table);
+	delete previous;
+	showHeaderCheckbox->value(table->customHeaderRowShown());
+	updateTable();
+	const int lastRow = static_cast<int>(table->getNumberRows()) - 1;
+	const int lastCol = static_cast<int>(table->getNumberCols()) - 1;
+	if( top >= 0 && left >= 0 && lastRow >= 0 ) {
+		grid->set_selection(std::min(top, lastRow), std::min(left, lastCol),
+			std::min(bottom, lastRow), std::min(right, lastCol));
+	} else {
+		grid->set_selection(-1, -1, -1, -1);
+	}
+	grid->row_position(std::max(0, std::min(rowPosition, lastRow)));
+	grid->col_position(std::max(0, std::min(colPosition, lastCol)));
+	clearUndoList();
+	undoSaveState = -1;
+	changedWhileUndoDisabled = false;
+	setTypeButton(definition);
+	updateStatusbar("Refreshed from disk.");
+	setChanged(false);
+	win->redraw();
 	return true;
 }
 

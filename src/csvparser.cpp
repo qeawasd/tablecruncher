@@ -55,7 +55,7 @@ extern CsvWindow windows[];
  *	@return		list indicating different row lengths
 
  */
-std::map<long,long> CsvParser::parseCsvStream( std::istream *input, CsvDataStorage &storage, CsvDefinition *definition, int maxLines, bool resizeRows ) {
+std::map<long,long> CsvParser::parseCsvStream( std::istream *input, CsvDataStorage &storage, CsvDefinition *definition, int maxLines, bool resizeRows, bool reportProgress ) {
 	std::string line;
 	std::stringstream sstr;
 	long act_rows = 0;
@@ -131,7 +131,7 @@ std::map<long,long> CsvParser::parseCsvStream( std::istream *input, CsvDataStora
 			storage.push_back(vec);
 			++act_rows;
 			// show an update every 25,000 rows in the status bar – very expensive!
-			if( act_rows % 25000 == 0 ) {
+			if( reportProgress && act_rows % 25000 == 0 ) {
 				sstr.clear();
 				sstr.str("");
 				sstr << "Parsed " << act_rows << " lines.";

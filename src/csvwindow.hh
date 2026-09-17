@@ -110,6 +110,7 @@ public:
 	bool getWindowSlotUsed();										// Is this window active (visible)?
 	void setWindowSlotUsed(bool state);
 	bool loadFile(std::string filename, bool askUser=false, bool reopen=false);
+	bool refreshFromDisk();
 	void setUsed(bool used);										// has this been used since creation? Not to be confused with getWindowSlotUsed()
 	bool isUsed();
 	void setChanged(bool changed);

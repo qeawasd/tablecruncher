@@ -54,6 +54,7 @@ public:
 	void setDataTable(CsvTable *dataTable);				// points to the data table
 	void allowEvents(bool allow);						// call with false to forbid reacting to events
 	bool areEventsAllowed();							// returns true if events are allowed
+	void finishEditing() { doneEditing(); }
 	void setVisibleArea(int R, int C);					// Sets the visible area of the table in a way that the given cell is central
 	void setDeletionHighlight(bool, int, int);			// set deletion highlights
 	void removeDeletionHighlight();

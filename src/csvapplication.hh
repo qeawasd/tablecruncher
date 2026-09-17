@@ -168,6 +168,7 @@ public:
 	static void enableUndoCB(Fl_Widget *, void *);
 	void openFile(bool askUser, bool reopen=false);		// Asks for a filename and opens that file. askUser => should the user choose the CSV format?
 	void openFile(std::string path, bool askUser);		// Opens the given file.
+	void refreshFile();
 	void openRecentFile(size_t index);					// Opens the index-th item in the Open Recent File menu
 	bool splitCsvFiles();
 	std::string splittedFileName(std::string pathWithoutExtension, std::string extension, int num, int digitalExtensionLength);

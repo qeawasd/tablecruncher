@@ -53,6 +53,7 @@ void CsvMenu::init() {
 	add("&File/" TCRUNCHER_MENUTEXT_OPEN, FL_COMMAND + 'o', MyMenuCallback, 0);
 	add("&File/&Open with format ...", FL_COMMAND + FL_SHIFT + 'o', MyMenuCallback, 0);
 	add("&File/&Reopen ...", FL_COMMAND + FL_SHIFT + FL_CTRL + 'o', MyMenuCallback, 0);
+	add("&File/&Refresh from Disk", FL_COMMAND + 'r', MyMenuCallback, 0);
 	add("&File/" TCRUNCHER_MENUTEXT_OPEN_RECENT, 0, 0, 0, FL_SUBMENU | FL_MENU_DIVIDER);
 	add("&File/" TCRUNCHER_MENUTEXT_OPEN_RECENT "/&(empty)", 0, 0, 0, FL_MENU_INACTIVE);
 	add("&File/&Close", FL_COMMAND + 'w', MyMenuCallback, 0, FL_MENU_DIVIDER);
@@ -199,6 +200,8 @@ void CsvMenu::MyMenuCallback(Fl_Widget *w, void *data) {
 		app.openFile(true);
 	} else if( strcmp(item->label(), "&Reopen ...") == 0 ) {
 		app.openFile(true, true);
+	} else if( strcmp(item->label(), "&Refresh from Disk") == 0 ) {
+		app.refreshFile();
 	} else if( strcmp(item->label(), "&Save") == 0 ) {
 		app.saveFileCB(NULL, NULL);
 	} else if( strcmp(item->label(), "&Save As ...") == 0 ) {
