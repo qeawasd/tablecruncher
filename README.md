@@ -1,24 +1,6 @@
 # CSV Refresh
 
-**AI 或其他程序修改 CSV 后，按 Ctrl+R 重新读取文件，查看最新内容。**
-
-CSV Refresh 是基于 [Tablecruncher](https://github.com/Tablecruncher/tablecruncher) 的实验性修改版，保留原项目的桌面表格编辑功能，新增从磁盘刷新的操作。适合让 AI、脚本或外部编辑器修改本地 CSV，再回到表格窗口检查结果的工作流程。
-
-当前功能位于 [`feature/ctrl-r-refresh`](https://github.com/qeawasd/tablecruncher/tree/feature/ctrl-r-refresh) 分支。`main` 分支仍为上游代码。项目采用 **C++17 + FLTK + CMake**，无需部署网页服务，也无需配置 AI API。
-
-> 当前状态：Windows x64 Release 已编译通过，解析回归测试已通过；GUI 端到端验收尚未完成。此版本暂未发布 GitHub Release，仓库中不包含预编译安装包。应用窗口和构建产物目前仍沿用上游名称。
-
-## 为什么做这个工具
-
-CSV 在磁盘上已经被 AI 修改，但编辑器仍显示打开时的内容，就很难确认修改结果。这个分支增加一个明确的刷新入口：重新读取当前文件，并在替换表格之前处理未保存修改和读取失败。
-
-```text
-打开 CSV → AI / 脚本修改同一个文件并保存 → 回到窗口按 Ctrl+R → 查看最新内容
-```
-
-AI 可以使用你现有的工具。CSV Refresh 本身不调用模型；双方只需要操作同一个本地文件。
-
-## 新增功能
+## Key Features · Fork 后新增功能
 
 | 功能 | 当前行为 |
 | --- | --- |
@@ -32,6 +14,36 @@ AI 可以使用你现有的工具。CSV Refresh 本身不调用模型；双方�
 | 视图位置 | 尽量保留选区和滚动位置；文件缩小时将位置限制到有效范围 |
 
 本项目同时继承上游的 CSV 编辑、查找、排序、JavaScript 宏、多种编码及主题等功能。完整的上游介绍见 [README_UPSTREAM.md](README_UPSTREAM.md)。
+
+**AI 或其他程序修改 CSV 后，按 Ctrl+R 重新读取文件，查看最新内容。**
+
+CSV Refresh 是基于 [Tablecruncher](https://github.com/Tablecruncher/tablecruncher) 的实验性修改版，保留原项目的桌面表格编辑功能，新增从磁盘刷新的操作。适合让 AI、脚本或外部编辑器修改本地 CSV，再回到表格窗口检查结果的工作流程。
+
+当前功能位于 [`feature/ctrl-r-refresh`](https://github.com/qeawasd/tablecruncher/tree/feature/ctrl-r-refresh) 分支。`main` 分支仍为上游代码。项目采用 **C++17 + FLTK + CMake**，无需部署网页服务，也无需配置 AI API。
+
+> 当前状态：Windows x64 Release 已编译通过，解析回归测试已通过；GUI 端到端验收尚未完成。Windows x64 预览版可从下方 Release 下载。应用窗口目前仍沿用上游名称。
+
+## 下载 Windows 预览版
+
+[下载 CSV Refresh v0.1.0-preview.1](https://github.com/qeawasd/tablecruncher/releases/tag/v0.1.0-preview.1)
+
+- **CSVRefresh-v0.1.0-preview.1-windows-x64.zip**：解压后运行 `CSVRefresh.exe`，包含说明和许可证。
+- **CSVRefresh-v0.1.0-preview.1-source.zip**：本次发布的应用源码、FLTK 1.4.3 源码和构建脚本。
+- **SHA256SUMS.txt**：下载文件的 SHA-256 校验值。
+
+替换已安装版本时，先保存 CSV 并关闭程序，备份原 `Tablecruncher.exe`，再将 `CSVRefresh.exe` 复制到原目录并重命名为 `Tablecruncher.exe`。保持路径与文件名一致，可继续使用原快捷方式；如需修改默认打开方式，在 Windows 中右键 CSV → 打开方式 → 选择其他应用 → 选择该程序 → 始终。
+
+这是预览版，完整界面验收尚未完成。运行需要相应的 x64 Visual C++ 运行库。
+
+## 为什么做这个工具
+
+CSV 在磁盘上已经被 AI 修改，但编辑器仍显示打开时的内容，就很难确认修改结果。这个分支增加一个明确的刷新入口：重新读取当前文件，并在替换表格之前处理未保存修改和读取失败。
+
+```text
+打开 CSV → AI / 脚本修改同一个文件并保存 → 回到窗口按 Ctrl+R → 查看最新内容
+```
+
+AI 可以使用你现有的工具。CSV Refresh 本身不调用模型；双方只需要操作同一个本地文件。
 
 ## 使用方法
 
