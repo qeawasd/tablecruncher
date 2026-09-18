@@ -1881,10 +1881,7 @@ void CsvApplication::sort(unsigned int column) {
 	My_Fl_Button *sortButton;
 	int windowIndex = getTopWindow();
 	std::tuple<Fl_Widget *, Fl_Widget *, Fl_Widget *> widgets;
-	int searchType = 1;
-	if( windows[windowIndex].table->isNumericColumn(column, 1000000) ) {
-		searchType = 0;
-	}
+	if( windowIndex < 0 || windows[windowIndex].table->getNumberCols() == 0 ) return;
 	
 	Fl_Window *topWin = Fl::first_window();
 	
@@ -1894,6 +1891,8 @@ void CsvApplication::sort(unsigned int column) {
 	sortWin->labelcolor(ColorThemes::getColor(app.getTheme(), "win_text"));
 	sortWin->label("Sort By");
 	sortWin->callback(doSortWinCB);
+	sortWin->dataExchange = -1;
+	sortWin->set_modal();
 	
 	sortWin->begin();
 	colChoice = new Fl_Choice(90, 30, 120, 25, "Column: ");
@@ -1915,8 +1914,18 @@ void CsvApplication::sort(unsigned int column) {
 	typeChoice->add("Numeric");
 	typeChoice->add("String");
 	typeChoice->add("String (ignore case)");
-	typeChoice->value(searchType);
 	typeChoice->labelcolor(ColorThemes::getColor(app.getTheme(), "win_text"));
+	struct SortColumnContext {
+		CsvTable *table;
+		Fl_Choice *type;
+	} columnContext { windows[windowIndex].table, typeChoice };
+	colChoice->callback([](Fl_Widget *widget, void *data) {
+		auto *context = static_cast<SortColumnContext *>(data);
+		const int selectedColumn = static_cast<Fl_Choice *>(widget)->value();
+		context->type->value(context->table->isNumericColumn(selectedColumn, 1000000) ? 0 : 1);
+		context->type->redraw();
+	}, &columnContext);
+	colChoice->do_callback();
 
 	std::get<0>(widgets) = colChoice;
 	std::get<1>(widgets) = orderChoice;
@@ -1938,24 +1947,30 @@ void CsvApplication::sort(unsigned int column) {
 	topWin = Fl::first_window();
 
 	sortWin->show();
-	while( sortWin->shown() ) {
+	while( sortWin->shown() && sortWin->dataExchange != 0 ) {
 		Fl::wait();
 	}
 	
 	// do sort
 	if( sortWin->dataExchange == 0 ) {
-		windows[windowIndex].setChanged(true);
-		windows[windowIndex].setUsed(true);
-		showImWorkingWindow("Sorting ...");
+		// Keep this modal visible while sorting instead of flashing a second window.
+		sortWin->dataExchange = 1;
+		colChoice->deactivate();
+		orderChoice->deactivate();
+		typeChoice->deactivate();
+		sortButton->copy_label("Sorting...");
+		sortButton->deactivate();
+		sortWin->redraw();
+		Fl::flush();
 		windows[windowIndex].addUndoStateTable("Sort Table");
 		windows[windowIndex].table->sortTable(
 			colChoice->value(),
 			orderChoice->value() == 0 ? true : false,
 			typeChoice->value()
 		);
-		hideImWorkingWindow();
+		windows[windowIndex].setChanged(true);
+		windows[windowIndex].setUsed(true);
 		windows[windowIndex].grid->redraw();
-		Fl::check();
 	}
 	sortWin->hide();
 	
@@ -1964,21 +1979,20 @@ void CsvApplication::sort(unsigned int column) {
 	delete typeChoice;
 	delete sortButton;
 	// restore active window
-	if( topWin ) {
+	if( topWin && topWin->shown() ) {
 		Fl::first_window(topWin);
-		topWin->show();
 		topWin->take_focus();
 	}
 }
 void CsvApplication::doSortCB(Fl_Widget *, void *) {
+	if( app.sortWin->dataExchange == 1 ) return;
 	app.sortWin->dataExchange = 0;
-	app.sortWin->hide();
 }
 void CsvApplication::doSortWinCB(Fl_Widget *, long data) {
+	if( app.sortWin->dataExchange == 1 ) return;
 	if( data == TCRUNCHER_MYFLCHOICE_MAGICAL) {
 		// pressed ENTER
 		app.sortWin->dataExchange = 0;
-		app.sortWin->hide();
 	}
 	if( data <= 0 ) {
 		// ESC or red close button
