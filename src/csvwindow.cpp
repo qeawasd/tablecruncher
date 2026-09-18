@@ -254,6 +254,8 @@ void CsvWindow::create(int createdWindowCount) {
 	toolbar->AddButton("Open file", openPng, &CsvApplication::openFileCB, win, iconSize+iconPadding);
 	toolbar->AddButton("Save file", savePng, &CsvApplication::saveFileCB, win, iconSize+iconPadding);
 	toolbar->AddButton("Save file as ...", saveAsPng, &CsvApplication::saveFileAsCB, win, iconSize+iconPadding);
+	toolbar->AddButton("Sort rows by the selected column...", NULL, &CsvApplication::sortToolbarCB,
+		win, iconSize+iconPadding, "Sort", 12);
 	toolbar->AddButton("", separatorPng, NULL, NULL, iconSize+iconPadding);
 	toolbar->AddButton("Information", infoPng, &CsvApplication::showInfoWindowCB, grid, iconSize+iconPadding);
 	toolbar->AddButton("", separatorPng, NULL, NULL, iconSize+iconPadding);

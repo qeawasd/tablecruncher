@@ -184,6 +184,7 @@ public:
 	void find();
 	void updateSearchWindow();
 	void sort(unsigned int column=0);
+	static void sortToolbarCB(Fl_Widget *, void *);
 	void flagSelectedRowsCB();
 	void unflagRowsCB();
 	void invertFlaggedCB();

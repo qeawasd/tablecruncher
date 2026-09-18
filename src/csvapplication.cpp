@@ -1860,6 +1860,20 @@ void CsvApplication::find_replaceAll_CB(Fl_Widget *, long data) {
 /*
  * Sort table by column
  */
+void CsvApplication::sortToolbarCB(Fl_Widget *, void *data) {
+	const int index = app.getWindowByPointer(static_cast<Fl_Widget *>(data));
+	if( index < 0 || index >= TCRUNCHER_MAX_WINDOWS ) return;
+	app.setTopWindow(index);
+	auto& document = windows[index];
+	document.grid->finishEditing();
+	if( document.table->getNumberCols() == 0 || document.table->getNumberRows() == 0 ) return;
+	int top, left, bottom, right;
+	document.grid->get_selection(top, left, bottom, right);
+	const unsigned int column = left >= 0 && left < document.table->getNumberCols() ? left : 0;
+	app.sort(column);
+}
+
+
 void CsvApplication::sort(unsigned int column) {
 	Fl_Choice *colChoice;
 	Fl_Choice *orderChoice;
